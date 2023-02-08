@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(non_snake_case)]
 
 use std::cell::RefCell;
 use std::collections::HashMap;
