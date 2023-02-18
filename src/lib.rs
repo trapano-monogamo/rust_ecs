@@ -1,9 +1,15 @@
 #![allow(dead_code)]
-#![allow(non_snake_case)]
+
+pub extern crate component_derive;
+pub use component_derive::*;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::any::{Any, TypeId};
+
+
+
+pub type Entity = usize;
 
 pub trait Component {
     fn as_any(&mut self) -> &mut dyn Any;
@@ -16,9 +22,11 @@ pub trait System {
     fn call(&mut self, world: &mut World);
 }
 
+
+
 pub struct World {
-    entities: Vec<usize>,
-    components: HashMap<usize, Vec<Box<dyn Component>>>,
+    entities: Vec<Entity>,
+    components: HashMap<Entity, Vec<Box<dyn Component>>>,
 }
 
 impl World {
@@ -29,11 +37,11 @@ impl World {
         }
     }
 
-    pub fn add_entity(&mut self, entity: usize) {
+    pub fn add_entity(&mut self, entity: Entity) {
         self.entities.push(entity);
     }
 
-    pub fn add_component<T>(&mut self, entity: usize, component: T)
+    pub fn add_component<T>(&mut self, entity: Entity, component: T)
         where T: Component + 'static
     {
         match self.components.get_mut(&entity) {
@@ -42,7 +50,7 @@ impl World {
         }
     }
 
-    pub fn get_component<T>(&mut self, entity: usize) -> Option<&mut T>
+    pub fn get_component<T>(&mut self, entity: Entity) -> Option<&mut T>
         where T: Component + 'static
     {
         return match self.components.get_mut(&entity) {
@@ -72,13 +80,13 @@ impl World {
         return res;
     }
 
-    pub fn remove_entity(&mut self, entity: usize) {
+    pub fn remove_entity(&mut self, entity: Entity) {
         if let Some(index) = self.entities.iter().position(|&x| x == entity) {
             self.entities.remove(index);
         }
     }
 
-    // pub fn remove_component<T>(&mut self, entity: usize)
+    // pub fn remove_component<T>(&mut self, entity: Entity)
     //     where T: Component + 'static
     // {
     //     if let Some(components) = self.components.get_mut(&entity) {
@@ -90,6 +98,8 @@ impl World {
     //     }
     // }
 }
+
+
 
 pub struct ECS {
     // startup_systems: Vec<Box<dyn System>>,
@@ -111,17 +121,22 @@ impl ECS {
         }
     }
 
-    pub fn add_entity(&mut self, entity: usize) { self.world.get_mut().add_entity(entity); }
-    pub fn add_component<T>(&mut self, entity: usize, component: T) where T: Component + 'static { self.world.get_mut().add_component(entity, component); }
+    pub fn add_entity(&mut self, entity: Entity) { self.world.get_mut().add_entity(entity); }
+    pub fn add_component<T>(&mut self, entity: Entity, component: T) where T: Component + 'static { self.world.get_mut().add_component(entity, component); }
     pub fn add_system(&mut self, system: Box<dyn System>) { self.systems.push(system); }
 
-    pub fn get_component<T>(&mut self, entity: usize) -> Option<&mut T> where T: Component + 'static { return self.world.get_mut().get_component(entity); }
+    pub fn get_component<T>(&mut self, entity: Entity) -> Option<&mut T> where T: Component + 'static { return self.world.get_mut().get_component(entity); }
     pub fn get_components<T>(&mut self) -> Vec<&mut T> where T: Component + 'static { return self.world.get_mut().get_components::<T>(); }
 
-    pub fn remove_entity(&mut self, entity: usize) { self.world.get_mut().remove_entity(entity) }
+    pub fn remove_entity(&mut self, entity: Entity) { self.world.get_mut().remove_entity(entity) }
     // TODO:
-    // pub fn remove_component<T>(&mut self, entity: usize) where T: Component + 'static { self.world.get_mut().remove_component::<T>(entity); }
+    // pub fn remove_component<T>(&mut self, entity: Entity) where T: Component + 'static { self.world.get_mut().remove_component::<T>(entity); }
 }
+
+
+
+/* ~ TESTS ~
+ * * * * * */
 
 #[cfg(test)]
 mod tests {
